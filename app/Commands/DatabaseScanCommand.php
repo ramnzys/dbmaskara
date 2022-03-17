@@ -16,7 +16,7 @@ class DatabaseScanCommand extends Command
      */
     protected $signature = 'db:scan
                                 {--url= : URL of the database to connect to.}
-                                {--o|output-file=example.yaml : Filename to output the result.}
+                                {--mask-config= : Filename to output the result.}
     ';
 
     /**
@@ -36,7 +36,7 @@ class DatabaseScanCommand extends Command
         $this->newLine();
 
         $url = $this->option('url');
-        $outputFilename = $this->option('output-file');
+        $outputFilename = $this->option('mask-config');
 
         if (is_null($url) || is_null($outputFilename)) {
             $this->error('Bad parameters. Use -h for help on command.');
