@@ -2,11 +2,11 @@
 
 namespace App\Commands;
 
+use App\Generators\GeneratorFactory;
 use Doctrine\DBAL\DriverManager;
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
 use Symfony\Component\Yaml\Yaml;
-use Faker;
 
 class DatabaseMaskCommand extends Command
 {
@@ -56,6 +56,13 @@ class DatabaseMaskCommand extends Command
 
         $tables = $yamlConfig['tables'];
 
+        $defaultMask = array_merge([
+            'generator' => 'static',
+            'value' => '',
+            'transform' => [],
+            'locale' => 'en_US',
+        ], $yamlConfig['default']['mask'] ?? []);
+
         foreach ($tables as $tableName => $tableData) {
 
             $this->info("\n\ndbMasking '{$tableName}' table ...");
@@ -73,10 +80,10 @@ class DatabaseMaskCommand extends Command
             foreach ($dataResult->iterateAssociative() as $row) {
                 $updateData = [];
                 foreach ($yamlConfig['tables'][$tableName]['fields'] as $field => $fieldOptions) {
-                    $valueGenerator = Faker\Factory::create('es_es');
-                    $params = $fieldOptions['params'] ?? [];
-                    $updateValue = $valueGenerator->__call($fieldOptions['formatter'], $params);
-                    $updateData += array($field => $updateValue);
+
+                    $maskOptions = array_merge($defaultMask, $fieldOptions);
+                    $generator = GeneratorFactory::create($maskOptions);
+                    $updateData += array($field => $generator->generateValue());
                 }
 
                 $keyData = array_flip($primaryKeys);
